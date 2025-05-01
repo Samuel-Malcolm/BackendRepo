@@ -1,12 +1,17 @@
 import express from 'express';
 import fetch from 'node-fetch'; // If you want to make external requests like to Fitbit's API
 import cors from 'cors'; // or const cors = require('cors');
+import cors from 'cors';
 
 // Initialize express app
 
 const app = express();
 
-app.use(cors()); // <-- This enables CORS for all origins
+app.use(cors({
+  origin: '*', // your Netlify domain
+  methods: ['POST', 'GET', 'OPTIONS'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // POST request handler
