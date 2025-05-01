@@ -22,11 +22,8 @@ app.post('/custom-endpoint', async (req, res) => {
 
     const externalData = await externalResponse.json();
 
-    res.status(200).json({
-      message: 'Data received and processed successfully!',
-      externalResponse: externalData,
-    });
-  } catch (error) {
+    res.status(200).json(externalData); // instead of nesting inside externalResponse
+} catch (error) {
     console.error('Error during external API call:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
