@@ -1,40 +1,40 @@
-// server.js
 import express from 'express';
-import fetch from 'node-fetch';
+import fetch from 'node-fetch'; // If you want to make external requests like to Fitbit's API
+import cors from 'cors'; // or const cors = require('cors');
+
+// Initialize express app
 
 const app = express();
+
+app.use(cors()); // <-- This enables CORS for all origins
 app.use(express.json());
 
-app.post('/fitbit/token', async (req, res) => {
-  const { code } = req.body;
+// POST request handler
+app.post('/custom-endpoint', async (req, res) => {
+  // Extract data from the incoming request body
+  const { userData } = req.body;
 
-  const clientId = 'YOUR_CLIENT_ID';
-  const clientSecret = 'YOUR_CLIENT_SECRET';
-  const redirectUri = 'https://your-app.com/callback'; // This should match your Fitbit app's redirect URI
+  // Log the incoming data to the console (you can replace this with actual processing)
+  console.log('Received POST data:', userData);
 
-  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-
+  // Example: Sending a POST request to an external API (optional)
   try {
-    const fitbitResponse = await fetch('https://api.fitbit.com/oauth2/token', {
+    const externalResponse = await fetch(userData.url, {
       method: 'POST',
-      headers: {
-        'Authorization': `Basic ${basicAuth}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: redirectUri,
-      }),
+      headers: await userData.headers,
+      body: await userData.body,
     });
 
-    const data = await fitbitResponse.json();
-    res.status(fitbitResponse.status).json(data);
-  } catch (err) {
-    res.status(500).json({ error: 'Token exchange failed', details: err.message });
-  }
-});
+    const externalData = await externalResponse.json();
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+    // Respond back to the client with the external data or a custom message
+    res.status(200).json({
+      message: 'Data received and processed successfully!',
+      externalResponse: externalData,
+    });
+  } catch (error) {
+    // Error handling
+    console.error('Error during external API call:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
