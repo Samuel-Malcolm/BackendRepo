@@ -44,7 +44,7 @@ app.get('/auth/fitbit', (req, res, next) => {
 
   const state = Buffer.from(JSON.stringify({ email, redirect })).toString('base64');
   console.log(state)
-  passport.authenticate('fitbit', { state })(req, res, next);
+  passport.authenticate('fitbit/callback', { state })(req, res, next);
 });
 
 // OAuth callback route
