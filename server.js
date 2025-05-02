@@ -39,10 +39,12 @@ passport.use(new FitbitStrategy({
     callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
     scope: ['activity', 'heartrate', 'sleep', 'profile']
   },
-  (accessToken, refreshToken, profile, done) => {
+  async (accessToken, refreshToken, profile, done) => {
     console.log('Fitbit Profile:', profile);
     console.log('Access Token:', accessToken);
     console.log('Refresh Token:', refreshToken);
+    await supabase.from('tokens').upsert({email: req.session.email,accessToken: accessToken,refreshToken: refreshToken})
+
     // Normally you'd save this info to your DB here
     return done(null, { profile, accessToken, refreshToken });
   }
@@ -72,10 +74,9 @@ app.get('/auth/fitbit/callback',
   passport.authenticate('fitbit', { failureRedirect: '/auth/failed' }),
   async (req, res) => {
     // Successful auth
-    const {accessToken, refreshToken } = req.user
 
-    await supabase.from('tokens').upsert({email: req.session.email,accessToken: accessToken,refreshToken: refreshToken})
-    const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${fitbitUserId}`;
+    const redirectUrl = `${req.session.redirect}?email=${encodeURIComponent(email)}&fitbitId=${fitbitUserId}`;
+    console.log(redirectUrl)
     res.redirect(redirectUrl);
 
   }
