@@ -28,9 +28,9 @@ app.use(passport.session());
 
 // Configure Fitbit strategy
 passport.use(new FitbitStrategy({
-    clientID: process.env.FITBIT_CLIENT_ID,
-    clientSecret: process.env.FITBIT_CLIENT_SECRET,
-    callbackURL: process.env.CALLBACK_URL,
+    clientID: process.env.clientID,
+    clientSecret: process.env.clientSecret,
+    callbackURL: 'https://workout-app-sritan-samuel.netlify.app/home',
     scope: ['activity', 'heartrate', 'sleep', 'profile']
   },
   (accessToken, refreshToken, profile, done) => {
