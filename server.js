@@ -4,7 +4,6 @@ import passport, { authenticate } from 'passport';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
-import supabase from '@';
 import { createClient } from '@supabase/supabase-js';
 dotenv.config();
 
@@ -12,7 +11,6 @@ const supabaseUrl = 'https://tlatqijpqeyxshdjjllr.supabase.co';
 const supabaseKey = process.env.SESSION_SECRET || "";
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
-export default supabase
 const require = createRequire(import.meta.url);
 const FitbitStrategy = require('passport-fitbit-oauth2').FitbitOAuth2Strategy;
 
