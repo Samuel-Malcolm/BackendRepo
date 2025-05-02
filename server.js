@@ -33,13 +33,30 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Configure Fitbit strategy
-passport.use(new FitbitStrategy({
+
+// Serialize user into session
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+// Routes
+app.get('/auth/fitbit',(req,res,next) => {
+  
+  const { email,redirect } = req.query;
+  console.log(email,redirect)
+
+  if (email && redirect) {
+    // Save email to session so it's available in callback
+    req.session.email = email;
+    req.session.redirect = redirect;
+
+  }
+  passport.use(new FitbitStrategy({
     clientID: process.env.clientId,
     clientSecret: process.env.clientSecret,
     callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
     scope: ['activity', 'heartrate', 'sleep', 'profile']
   },
-  async (accessToken, refreshToken, profile, done) => {
+  async (accessToken, refreshToken, profile,req, done) => {
     console.log('Fitbit Profile:', profile);
     console.log('Access Token:', accessToken);
     console.log('Refresh Token:', refreshToken);
@@ -50,21 +67,6 @@ passport.use(new FitbitStrategy({
   }
 ));
 
-// Serialize user into session
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
-
-// Routes
-app.get('/auth/fitbit',(req,res,next) => {
-  const { email,redirect } = req.query;
-  console.log(email,redirect)
-
-  if (email && redirect) {
-    // Save email to session so it's available in callback
-    req.session.email = email;
-    req.session.redirect = redirect;
-
-  }
   next();
 }, passport.authenticate('fitbit')
 
@@ -75,7 +77,7 @@ app.get('/auth/fitbit/callback',
   async (req, res) => {
     // Successful auth
 
-    const redirectUrl = `${req.session.redirect}?email=${encodeURIComponent(email)}&fitbitId=${fitbitUserId}`;
+    const redirectUrl = `${req.session.redirect}?email=${encodeURIComponent(email)}`;
     console.log(redirectUrl)
     res.redirect(redirectUrl);
 
