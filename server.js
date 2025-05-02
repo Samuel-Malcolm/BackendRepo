@@ -8,74 +8,59 @@ import { createClient } from '@supabase/supabase-js';
 dotenv.config();
 
 const supabaseUrl = 'https://tlatqijpqeyxshdjjllr.supabase.co';
-const supabaseKey = process.env.SESSION_SECRET || "";
-
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
 const require = createRequire(import.meta.url);
 const FitbitStrategy = require('passport-fitbit-oauth2').FitbitOAuth2Strategy;
-
-// Load .env
-dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// Setup session middleware (required for Passport)
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true
 }));
-
-// Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Configure Fitbit strategy
+// Setup Fitbit strategy once
+passport.use(new FitbitStrategy({
+  clientID: process.env.clientId,
+  clientSecret: process.env.clientSecret,
+  callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
+  scope: ['activity', 'heartrate', 'sleep', 'profile']
+}, (accessToken, refreshToken, profile, done) => {
+  return done(null, { profile, accessToken, refreshToken });
+}));
 
-// Serialize user into session
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-// Routes
-app.get('/auth/fitbit',(req,res,next) => {
-  
-  const { email,redirect } = req.query;
-  console.log(email,redirect)
+// OAuth initiation
+app.get('/auth/fitbit', (req, res, next) => {
+  const { email, redirect } = req.query;
   req.session.email = email || "";
   req.session.redirect = redirect || "";
-  passport.use(new FitbitStrategy({
-    clientID: process.env.clientId,
-    clientSecret: process.env.clientSecret,
-    callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
-    scope: ['activity', 'heartrate', 'sleep', 'profile']
-  },
-  async (accessToken, refreshToken, profile, done) => {
-    console.log('Fitbit Profile:', profile);
-    console.log('Access Token:', accessToken);
-    console.log('Refresh Token:', refreshToken);
-    await supabase.from('tokens').upsert({email: email,accessToken: accessToken,refreshToken: refreshToken})
-
-    // Normally you'd save this info to your DB here
-    return done(null, { profile, accessToken, refreshToken });
-  }
-));
-
   next();
-}, passport.authenticate('fitbit')
+}, passport.authenticate('fitbit'));
 
-);
-
+// OAuth callback
 app.get('/auth/fitbit/callback',
   passport.authenticate('fitbit', { failureRedirect: '/auth/failed' }),
   async (req, res) => {
-    // Successful auth
+    const { profile, accessToken, refreshToken } = req.user;
+    const { email, redirect } = req.session;
 
-    const redirectUrl = `${req.session.redirect}?email=${encodeURIComponent(email)}`;
-    console.log(redirectUrl)
+    await supabase.from('tokens').upsert({
+      email,
+      accessToken,
+      refreshToken
+    });
+
+    const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${profile.id}`;
     res.redirect(redirectUrl);
-
   }
 );
 
