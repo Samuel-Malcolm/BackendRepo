@@ -46,11 +46,6 @@ app.get('/auth/fitbit', (req, res, next) => {
   console.log("Email:", email, "Fitbit ID:", redirect);
     req.session.email = email || "";
   req.session.redirect = redirect || "";
-  next();
-}, passport.authenticate('fitbit'));
-
-// OAuth callback
-app.get('/auth/fitbit/callback',
   passport.authenticate('fitbit', { failureRedirect: '/auth/failed' }),
   async (req, res) => {
     const { profile, accessToken, refreshToken } = req.user;
@@ -65,7 +60,11 @@ app.get('/auth/fitbit/callback',
     const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}`;
     res.redirect(redirectUrl);
   }
-);
+
+  next();
+}, passport.authenticate('fitbit'));
+
+// OAuth callback
 
 app.get('/auth/failed', (req, res) => {
   res.status(401).json({ error: 'Authentication failed' });
