@@ -54,6 +54,7 @@ passport.deserializeUser((user, done) => done(null, user));
 
 // Routes
 app.get('/auth/fitbit',(req,res,next) => {
+  console.log(email,redirect)
   const { email,redirect } = req.query;
   if (email && redirect) {
     // Save email to session so it's available in callback
@@ -68,16 +69,11 @@ app.get('/auth/fitbit',(req,res,next) => {
 
 app.get('/auth/fitbit/callback',
   passport.authenticate('fitbit', { failureRedirect: '/auth/failed' }),
-  (req, res) => {
+  async (req, res) => {
     // Successful auth
     const {accessToken, refreshToken } = req.user
 
-    supabase.from('tokens').upsert({email: req.session.email,accessToken: accessToken,refreshToken: refreshToken})
-    supabase.from("tokens")
-    res.json({
-      message: 'Fitbit authentication successful!',
-      user: req.user
-    });
+    await supabase.from('tokens').upsert({email: req.session.email,accessToken: accessToken,refreshToken: refreshToken})
     const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${fitbitUserId}`;
     res.redirect(redirectUrl);
 
