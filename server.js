@@ -43,7 +43,7 @@ app.get('/auth/fitbit', (req, res, next) => {
   
   const email = req.query.email;
   const redirect = req.query.redirect
-  console.log("Email:", email, "Fitbit ID:", fitbitId);
+  console.log("Email:", email, "Fitbit ID:", redirect);
     req.session.email = email || "";
   req.session.redirect = redirect || "";
   next();
@@ -62,7 +62,7 @@ app.get('/auth/fitbit/callback',
       refreshToken
     });
 
-    const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${profile.id}`;
+    const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}`;
     res.redirect(redirectUrl);
   }
 );
