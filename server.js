@@ -1,47 +1,70 @@
-import express from 'express'
-import cors  from 'cors'
-import fetch from 'node-fetch';
-const app = express();
+import express from 'express';
+import session from 'express-session';
+import passport from 'passport';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { createRequire } from 'module';
 
-// ✅ Apply CORS middleware before any routes
-app.use(cors({
-  origin: /(.*)/,
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+const require = createRequire(import.meta.url);
+const FitbitStrategy = require('passport-fitbit-oauth2').FitbitOAuth2Strategy;
+
+// Load .env
+dotenv.config();
+
+const app = express();
+app.use(cors());
 app.use(express.json());
 
-app.options(/(.*)/, cors());
+// Setup session middleware (required for Passport)
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true
+}));
 
-console.log(1)
-// ✅ Your route
-app.post('/custom-endpoint', async (req, res) => {
-    console.log(2)
-    console.log(req.method, req.url, req.body);
-    const { body } = req;
-    console.log('Received POST data:', body.url);
-  console.log('Received POST data:', body.body);
-  console.log('Received POST data:', body.headers);
-  try {
-    console.log(3)
-    const externalResponse = await fetch(body.url, {
-      method: 'POST',
-      headers: body.headers,
-      body: body.body,
-    });
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
-    const externalData = await externalResponse.json();
-
-    res.status(200).json(externalData); // instead of nesting inside externalResponse
-} catch (error) {
-    console.log(4)
-    console.error('Error during external API call:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+// Configure Fitbit strategy
+passport.use(new FitbitStrategy({
+    clientID: process.env.FITBIT_CLIENT_ID,
+    clientSecret: process.env.FITBIT_CLIENT_SECRET,
+    callbackURL: process.env.CALLBACK_URL,
+    scope: ['activity', 'heartrate', 'sleep', 'profile']
+  },
+  (accessToken, refreshToken, profile, done) => {
+    console.log('Fitbit Profile:', profile);
+    console.log('Access Token:', accessToken);
+    console.log('Refresh Token:', refreshToken);
+    // Normally you'd save this info to your DB here
+    return done(null, { profile, accessToken, refreshToken });
   }
+));
+
+// Serialize user into session
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+// Routes
+app.get('/auth/fitbit', passport.authenticate('fitbit'));
+
+app.get('/auth/fitbit/callback',
+  passport.authenticate('fitbit', { failureRedirect: '/auth/failed' }),
+  (req, res) => {
+    // Successful auth
+    res.json({
+      message: 'Fitbit authentication successful!',
+      user: req.user
+    });
+  }
+);
+
+app.get('/auth/failed', (req, res) => {
+  res.status(401).json({ error: 'Authentication failed' });
 });
-console.log(5)
-// ✅ Start server
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
