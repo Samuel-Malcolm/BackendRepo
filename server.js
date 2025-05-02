@@ -1,6 +1,6 @@
 import express from 'express';
 import session from 'express-session';
-import passport, { authenticate } from 'passport';
+import passport from 'passport';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
