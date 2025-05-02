@@ -4,8 +4,13 @@ import fetch from 'node-fetch';
 const app = express();
 
 // ✅ Apply CORS middleware before any routes
-app.use(cors()); // Allows all origins by default
-app.use(express.json());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.options('*', cors());
+
 console.log(1)
 // ✅ Your route
 app.post('/custom-endpoint', async (req, res) => {
