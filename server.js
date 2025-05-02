@@ -29,9 +29,10 @@ passport.use(new FitbitStrategy({
   clientSecret: process.env.clientSecret,
   callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
   scope: ['activity', 'heartrate', 'sleep', 'profile']
-},async (accessToken, refreshToken, profile, done) => {
+},async (accessToken, refreshToken, profile, done,req) => {
   console.log(profile)
- 
+  console.log(req?.query?.email ?? "undefined")
+  const email = (req?.query?.email ?? "undefined")
   await supabase.from('tokens').upsert({
     email,
     accessToken,
