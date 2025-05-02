@@ -54,8 +54,9 @@ passport.deserializeUser((user, done) => done(null, user));
 
 // Routes
 app.get('/auth/fitbit',(req,res,next) => {
-  console.log(email,redirect)
   const { email,redirect } = req.query;
+  console.log(email,redirect)
+
   if (email && redirect) {
     // Save email to session so it's available in callback
     req.session.email = email;
