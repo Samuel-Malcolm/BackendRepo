@@ -5,13 +5,13 @@ const app = express();
 
 // ✅ Apply CORS middleware before any routes
 app.use(cors({
-  origin: '*',
+  origin: /(.*)/,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 
-app.options('*', cors());
+app.options(/(.*)/, cors());
 
 console.log(1)
 // ✅ Your route
