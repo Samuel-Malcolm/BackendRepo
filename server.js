@@ -19,15 +19,15 @@ app.post('/custom-endpoint', async (req, res) => {
     console.log(2)
     console.log(req.method, req.url, req.body);
     const { body } = req;
-    console.log('Received POST data:', userData.url);
-  console.log('Received POST data:', userData.body);
-  console.log('Received POST data:', userData.headers);
+    console.log('Received POST data:', body.url);
+  console.log('Received POST data:', body.body);
+  console.log('Received POST data:', body.headers);
   try {
     console.log(3)
-    const externalResponse = await fetch(userData.url, {
+    const externalResponse = await fetch(body.url, {
       method: 'POST',
-      headers: userData.headers,
-      body: userData.body,
+      headers: body.headers,
+      body: body.body,
     });
 
     const externalData = await externalResponse.json();
