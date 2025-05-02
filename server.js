@@ -7,13 +7,15 @@ const app = express();
 // ✅ Apply CORS middleware before any routes
 app.use(cors()); // Allows all origins by default
 app.use(express.json());
-
+console.log(1)
 // ✅ Your route
 app.post('/custom-endpoint', async (req, res) => {
-  const { userData } = req.body;
+    console.log(2)
+    const { userData } = req.body;
   console.log('Received POST data:', userData);
 
   try {
+    console.log(3)
     const externalResponse = await fetch(userData.url, {
       method: 'POST',
       headers: userData.headers,
@@ -24,11 +26,12 @@ app.post('/custom-endpoint', async (req, res) => {
 
     res.status(200).json(externalData); // instead of nesting inside externalResponse
 } catch (error) {
+    console.log(4)
     console.error('Error during external API call:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
+console.log(5)
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
