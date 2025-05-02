@@ -29,8 +29,15 @@ passport.use(new FitbitStrategy({
   clientSecret: process.env.clientSecret,
   callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
   scope: ['activity', 'heartrate', 'sleep', 'profile']
-}, (accessToken, refreshToken, profile, done) => {
-  return done(null, { profile, accessToken, refreshToken });
+},async (accessToken, refreshToken, profile, done) => {
+  console.log(profile)
+ 
+  await supabase.from('tokens').upsert({
+    email,
+    accessToken,
+    refreshToken
+  });
+
 }));
 
 // OAuth initiation route
@@ -44,7 +51,7 @@ app.get('/auth/fitbit', (req, res, next) => {
 
   const state = Buffer.from(JSON.stringify({ email, redirect })).toString('base64');
   console.log(state)
-  passport.authenticate('fitbit/callback', { state })(req, res, next);
+  passport.authenticate('fitbit', { state })(req, res, next);
 });
 
 // OAuth callback route
