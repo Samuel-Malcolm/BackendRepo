@@ -40,8 +40,11 @@ passport.deserializeUser((user, done) => done(null, user));
 
 // OAuth initiation
 app.get('/auth/fitbit', (req, res, next) => {
-  const { email, redirect } = req.query;
-  req.session.email = email || "";
+  const params = new URLSearchParams(result.url.split('?')[1]);
+  const email = params.get('email');
+  const fitbitId = params.get('fitbitId');
+  console.log("Email:", email, "Fitbit ID:", fitbitId);
+    req.session.email = email || "";
   req.session.redirect = redirect || "";
   next();
 }, passport.authenticate('fitbit'));
