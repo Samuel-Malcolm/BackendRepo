@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import { createRequire } from 'module';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import pkg from 'redis';
-import connectRedis from 'connect-redis';
+import {connectRedis} from 'connect-redis';
 
 dotenv.config();
 
