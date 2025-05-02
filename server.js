@@ -1,41 +1,27 @@
 import express from 'express';
-import session from 'express-session';
 import passport from 'passport';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
 import { createClient } from '@supabase/supabase-js';
-import FileStoreFactory from 'session-file-store';
+import querystring from 'querystring';
 
 dotenv.config();
 
-const FileStore = FileStoreFactory(session);
 const require = createRequire(import.meta.url);
 const FitbitStrategy = require('passport-fitbit-oauth2').FitbitOAuth2Strategy;
 
-// Setup Supabase
+// Supabase setup
 const supabaseUrl = 'https://tlatqijpqeyxshdjjllr.supabase.co';
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Create Express app
+// Express app setup
 const app = express();
-app.use(cors({
-  origin: '*',
-  credentials: true
-}));
+app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 
-// Setup File-based Session Store
-app.use(session({
-  store: new FileStore({}),
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false
-}));
-
 app.use(passport.initialize());
-app.use(passport.session());
 
 // Fitbit OAuth strategy
 passport.use(new FitbitStrategy({
@@ -47,38 +33,51 @@ passport.use(new FitbitStrategy({
   return done(null, { profile, accessToken, refreshToken });
 }));
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
-
-// Auth initiation
+// OAuth initiation route
 app.get('/auth/fitbit', (req, res, next) => {
   const email = req.query.email;
   const redirect = req.query.redirect;
-  req.session.email = email || "";
-  req.session.redirect = redirect || "";
-  next();
-}, passport.authenticate('fitbit'));
 
-// OAuth callback
+  if (!email || !redirect) {
+    return res.status(400).json({ error: 'Missing email or redirect' });
+  }
+
+  const state = Buffer.from(JSON.stringify({ email, redirect })).toString('base64');
+  console.log(state)
+  passport.authenticate('fitbit', { state })(req, res, next);
+});
+
+// OAuth callback route
 app.get('/auth/fitbit/callback',
-  passport.authenticate('fitbit', { failureRedirect: '/auth/failed' }),
+  passport.authenticate('fitbit', { failureRedirect: '/auth/failed', session: false }),
   async (req, res) => {
-    const { profile, accessToken, refreshToken } = req.user;
-    const { email, redirect } = req.session;
+    try {
+      const { profile, accessToken, refreshToken } = req.user;
+      console.log(req.query.state)
+      const rawState = req.query.state;
+      const { email, redirect } = JSON.parse(Buffer.from(rawState, 'base64').toString());
 
-    // Store token in Supabase
-    await supabase.from('tokens').upsert({
-      email,
-      accessToken,
-      refreshToken
-    });
+      if (!email || !redirect) {
+        return res.status(400).json({ error: 'Invalid state' });
+      }
 
-    const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${profile.id}`;
-    res.redirect(redirectUrl);
+      // Save tokens to Supabase
+      await supabase.from('tokens').upsert({
+        email,
+        accessToken,
+        refreshToken
+      });
+
+      const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${profile.id}`;
+      res.redirect(redirectUrl);
+    } catch (error) {
+      console.error("Callback error:", error);
+      res.redirect('/auth/failed');
+    }
   }
 );
 
-// Auth failure
+// Auth failure route
 app.get('/auth/failed', (req, res) => {
   res.status(401).json({ error: 'Authentication failed' });
 });
