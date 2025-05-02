@@ -6,7 +6,6 @@ import dotenv from 'dotenv';
 import { createRequire } from 'module';
 import supabase from '@';
 import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
 dotenv.config();
 
 const supabaseUrl = 'https://tlatqijpqeyxshdjjllr.supabase.co';
