@@ -18,7 +18,7 @@ console.log(1)
 app.post('/custom-endpoint', async (req, res) => {
     console.log(2)
     console.log(req.method, req.url, req.body);
-    const { userData } = req.body;
+    const { body } = req;
     console.log('Received POST data:', userData.url);
   console.log('Received POST data:', userData.body);
   console.log('Received POST data:', userData.headers);
