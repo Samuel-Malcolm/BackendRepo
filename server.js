@@ -1,9 +1,10 @@
 import express from 'express';
 import session from 'express-session';
-import passport from 'passport';
+import passport, { authenticate } from 'passport';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
+import supabase from './supabase';
 
 const require = createRequire(import.meta.url);
 const FitbitStrategy = require('passport-fitbit-oauth2').FitbitOAuth2Strategy;
@@ -47,16 +48,34 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
 // Routes
-app.get('/auth/fitbit', passport.authenticate('fitbit'));
+app.get('/auth/fitbit',(req,res,next) => {
+  const { email,redirect } = req.query;
+  if (email && redirect) {
+    // Save email to session so it's available in callback
+    req.session.email = email;
+    req.session.redirect = redirect;
+
+  }
+  next();
+}, passport.authenticate('fitbit')
+
+);
 
 app.get('/auth/fitbit/callback',
   passport.authenticate('fitbit', { failureRedirect: '/auth/failed' }),
   (req, res) => {
     // Successful auth
+    
+    supabase.from('tokens').upsert({email: req.session.email,accessToken: accessToken,refreshToken: refreshToken})
+    const {accessToken, refreshToken } = req.user
+    supabase.from("tokens")
     res.json({
       message: 'Fitbit authentication successful!',
       user: req.user
     });
+    const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${fitbitUserId}`;
+    res.redirect(redirectUrl);
+
   }
 );
 
