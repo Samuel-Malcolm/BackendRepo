@@ -5,8 +5,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
 import { createClient } from '@supabase/supabase-js';
-import Redis from 'redis';
-import connectRedis from 'connect-redis';
+import {Redis} from 'redis';
+import {connectRedis} from 'connect-redis';
 
 dotenv.config();
 
