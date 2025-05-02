@@ -4,53 +4,53 @@ import passport from 'passport';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
-import { createClient } from '@supabase/supabase-js';
-import {Redis} from 'redis';
-import {connectRedis} from 'connect-redis';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import pkg from 'redis';
+import connectRedis from 'connect-redis';
 
 dotenv.config();
 
 const supabaseUrl = 'https://tlatqijpqeyxshdjjllr.supabase.co';
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createSupabaseClient(supabaseUrl, supabaseKey);
 
 const require = createRequire(import.meta.url);
 const FitbitStrategy = require('passport-fitbit-oauth2').FitbitOAuth2Strategy;
 
-const app = express();
-
-// Configure Redis client and store
+// Redis setup
 const RedisStore = connectRedis(session);
-const redisClient = Redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379' // Use Redis URL from environment or local
+const redis = pkg.createClient;
+const redisClient = redis({
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
+await redisClient.connect();
 
-redisClient.connect(); // Connect to Redis
-
-// Middleware
-app.use(cors());
+const app = express();
+app.use(cors({
+  origin: '*',
+  credentials: true
+}));
 app.use(express.json());
 
-// Session setup with Redis as the store
 app.use(session({
   store: new RedisStore({ client: redisClient }),
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'supersecret',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
+    secure: false, // Set true if using HTTPS
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // Ensure HTTPS in production
-    maxAge: 24 * 60 * 60 * 1000 // 1 day session expiration
+    maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Setup Fitbit OAuth2 strategy
+// Fitbit OAuth strategy
 passport.use(new FitbitStrategy({
-  clientID: process.env.CLIENT_ID,
-  clientSecret: process.env.CLIENT_SECRET,
+  clientID: process.env.clientId,
+  clientSecret: process.env.clientSecret,
   callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
   scope: ['activity', 'heartrate', 'sleep', 'profile']
 }, (accessToken, refreshToken, profile, done) => {
@@ -60,53 +60,48 @@ passport.use(new FitbitStrategy({
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-// OAuth initiation route
+// OAuth start
 app.get('/auth/fitbit', (req, res, next) => {
   const email = req.query.email;
   const redirect = req.query.redirect;
 
-  console.log("Email:", email, "Redirect:", redirect); // Debugging info
+  console.log("Email:", email, "Redirect:", redirect);
 
-  req.session.email = email || ""; // Store email in session
-  req.session.redirect = redirect || ""; // Store redirect URL in session
+  req.session.email = email || "";
+  req.session.redirect = redirect || "";
 
-  next(); // Proceed to passport.authenticate
+  next();
 }, passport.authenticate('fitbit'));
 
-// OAuth callback route
+// OAuth callback
 app.get('/auth/fitbit/callback',
   passport.authenticate('fitbit', { failureRedirect: '/auth/failed' }),
   async (req, res) => {
     const { profile, accessToken, refreshToken } = req.user;
     const { email, redirect } = req.session;
 
-    console.log("Session Email:", email);  // Log session email for debugging
-    console.log("Redirect URL:", redirect);  // Log redirect URL for debugging
-
     if (!email || !redirect) {
-      return res.status(400).json({ error: 'Missing email or redirect in session.' });
+      return res.redirect('/auth/failed');
     }
 
-    // Save tokens to Supabase (using upsert to insert or update)
     await supabase.from('tokens').upsert({
       email,
       accessToken,
       refreshToken
     });
 
-    // Redirect back to frontend with email and fitbitId
     const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${profile.id}`;
     res.redirect(redirectUrl);
   }
 );
 
-// Auth failure route
+// Auth failure
 app.get('/auth/failed', (req, res) => {
   res.status(401).json({ error: 'Authentication failed' });
 });
 
-// Start server
+// Server start
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 });
