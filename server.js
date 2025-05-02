@@ -10,7 +10,8 @@ console.log(1)
 // ✅ Your route
 app.post('/custom-endpoint', async (req, res) => {
     console.log(2)
-    const { userData } = req.body;
+    console.log(req)
+    const  userData  = req.body;
   console.log('Received POST data:', userData);
 
   try {
