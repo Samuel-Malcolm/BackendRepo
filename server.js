@@ -42,7 +42,7 @@ passport.deserializeUser((user, done) => done(null, user));
 app.get('/auth/fitbit', (req, res, next) => {
   
   const email = req.query.email;
-  const fitbitId = req.query.fitbitId
+  const redirect = req.query.redirect
   console.log("Email:", email, "Fitbit ID:", fitbitId);
     req.session.email = email || "";
   req.session.redirect = redirect || "";
