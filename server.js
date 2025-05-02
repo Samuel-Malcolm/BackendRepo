@@ -48,7 +48,7 @@ app.get('/auth/fitbit', (req, res, next) => {
 
   req.session.email = email || "";
   req.session.redirect = redirect || "";
-
+  console.log(req.session)
   next(); // Proceed to passport authentication
 }, passport.authenticate('fitbit'));
 
@@ -56,6 +56,8 @@ app.get('/auth/fitbit', (req, res, next) => {
 app.get('/auth/fitbit/callback',
   passport.authenticate('fitbit', { failureRedirect: '/auth/failed' }),
   async (req, res) => {
+    console.log(req.session)
+
     const { profile, accessToken, refreshToken } = req.user;
     const { email, redirect } = req.session;
 
@@ -65,9 +67,9 @@ app.get('/auth/fitbit/callback',
       accessToken,
       refreshToken
     });
-
     // Redirect back to frontend with email and fitbitId
-    const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${profile.id}`;
+    const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}`;
+    console.log(redirect)
     res.redirect(redirectUrl);
   }
 );
