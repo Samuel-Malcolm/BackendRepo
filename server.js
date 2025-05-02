@@ -30,7 +30,7 @@ app.use(passport.session());
 passport.use(new FitbitStrategy({
     clientID: process.env.clientId,
     clientSecret: process.env.clientSecret,
-    callbackURL: 'https://workout-app-sritan-samuel.netlify.app/home',
+    callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
     scope: ['activity', 'heartrate', 'sleep', 'profile']
   },
   (accessToken, refreshToken, profile, done) => {
