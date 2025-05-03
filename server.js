@@ -92,13 +92,12 @@ app.get('/auth/fitbit/callback',
         refreshToken: refreshToken
       })
       const jsonData =  {
-        summary: await fetchData(`https://api.fitbit.com/1/user/-/activities/date`, accessToken),
         heartRate: await fetchData(`https://api.fitbit.com/1/user/-/activities/heart`, accessToken),
         sleep: await fetchData(`https://api.fitbit.com/1.2/user/-/sleep`, accessToken),
         calories: await fetchData(`https://api.fitbit.com/1/user/-/activities/calories`, accessToken),
         distance: await fetchData(`https://api.fitbit.com/1/user/-/activities/distance`, accessToken),
         steps: await fetchData(`https://api.fitbit.com/1/user/-/activities/steps`, accessToken),
-
+        profile: profile
     };
       console.log("Data: ",jsonData)
       const {data,error} = await supabase.from('tokens').upsert({
