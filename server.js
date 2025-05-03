@@ -29,7 +29,7 @@ passport.use(new FitbitStrategy({
   clientSecret: process.env.clientSecret,
   callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
   scope: ['activity', 'heartrate', 'sleep', 'profile']
-},async (accessToken, refreshToken, profile, done,req) => {
+},async (accessToken, refreshToken, profile, done) => {
   console.log('passport')
   return done(null, { profile, accessToken, refreshToken });
 }));
