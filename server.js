@@ -97,7 +97,7 @@ app.get('/auth/fitbit/callback',
         calories: await fetchData(`https://api.fitbit.com/1/user/-/activities/calories`, accessToken),
         distance: await fetchData(`https://api.fitbit.com/1/user/-/activities/distance`, accessToken),
         steps: await fetchData(`https://api.fitbit.com/1/user/-/activities/steps`, accessToken),
-        profile: profile
+        profile: profile._json.user.firstName
     };
       console.log("Data: ",jsonData)
       const {data,error} = await supabase.from('tokens').upsert({
