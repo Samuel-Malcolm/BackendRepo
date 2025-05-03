@@ -71,7 +71,7 @@ app.get('/auth/fitbit/callback',
         accessToken: accessToken,
         refreshToken: refreshToken
       })
-      const [data,error] = await supabase.from('tokens').upsert({
+      const {data,error} = await supabase.from('tokens').upsert({
         email: email,
         accessToken: accessToken,
         refreshToken: refreshToken
