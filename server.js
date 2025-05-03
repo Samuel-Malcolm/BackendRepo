@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(passport.initialize());
 
 
-export default async function fetchData(accessToken, url) {
+export default async function fetchData( url,accessToken) {
   const today = new Date();
   const before = sub(today, { days: 5 });
   const endpoint = `${url}/date/${format(before, 'yyyy-MM-dd')}/${format(today, 'yyyy-MM-dd')}.json`;
