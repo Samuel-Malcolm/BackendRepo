@@ -59,7 +59,9 @@ app.get('/auth/fitbit/callback',
       console.log("Callback state",req.query.state)
       const rawState = req.query.state;
       const { email, redirect } = JSON.parse(Buffer.from(rawState, 'base64').toString());
-
+      console.log("JSON", JSON.parse(Buffer.from(rawState, 'base64').toString()))
+      console.log("redirect",redirect)
+      console.log("email",email)
       if (!email || !redirect) {
         return res.status(400).json({ error: 'Invalid state' });
       }
