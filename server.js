@@ -78,7 +78,7 @@ app.get('/auth/fitbit/callback',
       }).select("*");
       console.log("Insertion after supabase",data,error)
 
-      const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${profile.id}`;
+      const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${profile.id}&auth=true`;
       console.log("Redirect: ",redirectUrl)
       res.redirect(redirectUrl);
     } catch (error) {
