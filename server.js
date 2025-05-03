@@ -31,6 +31,7 @@ passport.use(new FitbitStrategy({
   scope: ['activity', 'heartrate', 'sleep', 'profile']
 },async (accessToken, refreshToken, profile, done,req) => {
   console.log('passport')
+  return done(null, { profile, accessToken, refreshToken });
 }));
 
 // OAuth initiation route
