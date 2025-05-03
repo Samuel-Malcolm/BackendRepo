@@ -30,7 +30,7 @@ passport.use(new FitbitStrategy({
   callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
   scope: ['activity', 'heartrate', 'sleep', 'profile']
 },async (accessToken, refreshToken, profile, done,req) => {
-
+  console.log('passport')
 }));
 
 // OAuth initiation route
