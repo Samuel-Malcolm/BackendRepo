@@ -68,9 +68,9 @@ app.get('/auth/fitbit/callback',
 
       // Save tokens to Supabase
       await supabase.from('tokens').upsert({
-        email,
-        accessToken,
-        refreshToken
+        email: email,
+        accessToken: accessToken,
+        refreshToken: refreshToken
       });
 
       const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${profile.id}`;
