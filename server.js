@@ -27,7 +27,7 @@ export default async function fetchData( url,accessToken) {
   const today = new Date();
   const before = sub(today, { days: 5 });
   const endpoint = `${url}/date/${format(before, 'yyyy-MM-dd')}/${format(today, 'yyyy-MM-dd')}.json`;
-
+  console.log("Fetch",endpoint,accessToken)
   const response = await fetch(endpoint, {
     method: 'GET',
     headers: {
@@ -35,8 +35,7 @@ export default async function fetchData( url,accessToken) {
       'Content-Type': 'application/json',
     },
   });
-
-  const data = await response.json();
+  const data = response.json();
   return data;
 }
 
