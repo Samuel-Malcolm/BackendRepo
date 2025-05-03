@@ -22,6 +22,27 @@ app.use(express.json());
 
 app.use(passport.initialize());
 
+
+export default async function fetchData(accessToken, url) {
+  const today = new Date();
+  const before = sub(today, { days: 5 });
+  const endpoint = `${url}/date/${format(before, 'yyyy-MM-dd')}/${format(today, 'yyyy-MM-dd')}.json`;
+
+  const response = await fetch(endpoint, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+  return data;
+}
+
+
+
+
 // Fitbit OAuth strategy
 passport.use(new FitbitStrategy({
   clientID: process.env.clientId,
@@ -71,10 +92,21 @@ app.get('/auth/fitbit/callback',
         accessToken: accessToken,
         refreshToken: refreshToken
       })
+      const jsonData = await Promise.all({
+        summary: fetchData(`https://api.fitbit.com/1/user/-/activities/date`, accessToken),
+        heartRate: fetchData(`https://api.fitbit.com/1/user/-/activities/heart`, accessToken),
+        sleep: fetchData(`https://api.fitbit.com/1.2/user/-/sleep`, accessToken),
+        calories: fetchData(`https://api.fitbit.com/1/user/-/activities/calories`, accessToken),
+        distance: fetchData(`https://api.fitbit.com/1/user/-/activities/distance`, accessToken),
+        steps: fetchData(`https://api.fitbit.com/1/user/-/activities/steps`, accessToken),
+
+    });
+      console.log("Data: ",jsonData)
       const {data,error} = await supabase.from('tokens').upsert({
         email: email,
         accessToken: accessToken,
-        refreshToken: refreshToken
+        refreshToken: refreshToken,
+        fitbitData: jsonData
       }).select("*");
       console.log("Insertion after supabase",data,error)
 
