@@ -31,6 +31,7 @@ passport.use(new FitbitStrategy({
   scope: ['activity', 'heartrate', 'sleep', 'profile']
 },async (accessToken, refreshToken, profile, done) => {
   console.log('passport')
+
   return done(null, { profile, accessToken, refreshToken });
 }));
 
@@ -51,7 +52,6 @@ app.get('/auth/fitbit', (req, res, next) => {
 
 // OAuth callback route
 app.get('/auth/fitbit/callback',
-  passport.authenticate('fitbit', { failureRedirect: '/auth/failed', session: false }),
   async (req, res) => {
     console.log('callback')
     try {
