@@ -13,9 +13,8 @@ const FitbitStrategy = require('passport-fitbit-oauth2').FitbitOAuth2Strategy;
 
 // Supabase setup
 const supabaseUrl = 'https://tlatqijpqeyxshdjjllr.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsYXRxaWpwcWV5eHNoZGpqbGxyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MTcxNTg5NSwiZXhwIjoyMDU3MjkxODk1fQ.Oz_7gzTznXtpFIp2R6GIOfpkyJ4Kz4m-PnjVAT0NTo4";
 export const supabase = createClient(supabaseUrl, supabaseKey);
-
 // Express app setup
 const app = express();
 app.use(cors({ origin: '*', credentials: true }));
@@ -72,18 +71,15 @@ app.get('/auth/fitbit/callback',
         accessToken: accessToken,
         refreshToken: refreshToken
       })
-      supabase.from('tokens').upsert({
+      const [data,error] = await supabase.from('tokens').upsert({
         email: email,
         accessToken: accessToken,
         refreshToken: refreshToken
-      });
-      console.log("Insertion after supabase",{
-        email: email,
-        accessToken: accessToken,
-        refreshToken: refreshToken
-      })
+      }).select("*");
+      console.log("Insertion after supabase",data,error)
 
       const redirectUrl = `${redirect}?email=${encodeURIComponent(email)}&fitbitId=${profile.id}`;
+      console.log("Redirect: ",redirectUrl)
       res.redirect(redirectUrl);
     } catch (error) {
       console.error("Callback error:", error);
