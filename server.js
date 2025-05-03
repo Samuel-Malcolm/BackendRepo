@@ -67,7 +67,8 @@ app.get('/auth/fitbit/callback',
       }
 
       // Save tokens to Supabase
-      await supabase.from('tokens').upsert({
+      console.log("Insertion")
+      supabase.from('tokens').upsert({
         email: email,
         accessToken: accessToken,
         refreshToken: refreshToken
