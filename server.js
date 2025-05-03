@@ -30,10 +30,12 @@ passport.use(new FitbitStrategy({
   callbackURL: 'https://backendrepo-7lce.onrender.com/auth/fitbit/callback',
   scope: ['activity', 'heartrate', 'sleep', 'profile']
 },async (accessToken, refreshToken, profile, done,req) => {
+
 }));
 
 // OAuth initiation route
 app.get('/auth/fitbit', (req, res, next) => {
+  console.log('auth')
   const email = req.query.email;
   const redirect = req.query.redirect;
 
@@ -42,7 +44,7 @@ app.get('/auth/fitbit', (req, res, next) => {
   }
 
   const state = Buffer.from(JSON.stringify({ email, redirect })).toString('base64');
-  console.log(state)
+  console.log("Auth state",state)
   passport.authenticate('fitbit', { state })(req, res, next);
 });
 
@@ -50,9 +52,10 @@ app.get('/auth/fitbit', (req, res, next) => {
 app.get('/auth/fitbit/callback',
   passport.authenticate('fitbit', { failureRedirect: '/auth/failed', session: false }),
   async (req, res) => {
+    console.log('callback')
     try {
       const { profile, accessToken, refreshToken } = req.user;
-      console.log(req.query.state)
+      console.log("Callback state",req.query.state)
       const rawState = req.query.state;
       const { email, redirect } = JSON.parse(Buffer.from(rawState, 'base64').toString());
 
