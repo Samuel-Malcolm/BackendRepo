@@ -1,3 +1,4 @@
+// Import necessary modules and libraries
 import express from 'express';
 import passport from 'passport';
 import cors from 'cors';
@@ -8,7 +9,10 @@ import querystring from 'querystring';
 import {sub,formatDate,format} from "date-fns"
 dotenv.config();
 
+// Enable CommonJS-style require in ES modules
 const require = createRequire(import.meta.url);
+
+// Import Fitbit OAuth2 strategy for Passport
 const FitbitStrategy = require('passport-fitbit-oauth2').FitbitOAuth2Strategy;
 
 // Supabase setup
@@ -22,7 +26,7 @@ app.use(express.json());
 
 app.use(passport.initialize());
 
-
+// Function to fetch data from Fitbit API
 export default async function fetchData( url,accessToken) {
   const today = new Date();
   const before = sub(today, { days: 5 });
